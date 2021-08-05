@@ -24,7 +24,7 @@ void sun_set() {
 
     //RIVER START
     glBegin(GL_QUADS);
-    glColor3ub(190, 30, 45);
+    glColor3ub(200, 63, 46);
     glVertex2f(0,745);
     glVertex2f(0,1080);
     glVertex2f(1920,1080);
@@ -152,7 +152,48 @@ void sun_set() {
     glVertex2f(0,745);
     glVertex2f(140,745);
     glEnd();
-    ///////////////
+    //LEFT HILL END
+
+    //RIGHT HILL START
+    glPushMatrix();
+    glTranslated(1920,0,0);
+    glBegin(GL_POLYGON);
+    glColor3ub(170, 43, 41);
+    glVertex2f(-660,745);
+    glVertex2f(-605,700);
+    glVertex2f(-560,693);
+    glVertex2f(-447,648);
+    glVertex2f(-375,685);
+    glVertex2f(-186,569);
+    glVertex2f(0,660);
+    glVertex2f(0,745);
+    glEnd();
+    glBegin(GL_POLYGON);  //SHADOW
+    glColor3ub(196, 76, 88);
+    glVertex2f(-428,724);
+    glVertex2f(-470,699);
+    glVertex2f(-453,688);
+    glVertex2f(-466,668);
+    glVertex2f(-447,648);
+    glVertex2f(-427,660);
+    glVertex2f(-364,745);
+    glVertex2f(-428,745);
+    glEnd();
+    glBegin(GL_POLYGON);  //SHADOW
+    glColor3ub(196, 76, 88);
+    glVertex2f(-140,720);
+    glVertex2f(-161,681);
+    glVertex2f(-155,650);
+    glVertex2f(-187,606);
+    glVertex2f(-186,569);
+    glVertex2f(0,660);
+    glVertex2f(0,745);
+    glVertex2f(-140,745);
+    glEnd();
+    glLoadIdentity();
+    glPopMatrix();
+    //RIGHT HILL END
+    /////////////////////
     glPushMatrix();
     glTranslatef(-106,-67,0);
     glBegin(GL_POLYGON);
@@ -257,7 +298,127 @@ void sun_set() {
     glPopMatrix();
 
 
-    //BOAT START
+
+     //BRIDGE START
+    glBegin(GL_QUADS);
+    glColor3ub(149, 36, 49);
+    glVertex2f(0,560);
+    glVertex2f(1920,560);
+    glVertex2f(1920,500);
+    glVertex2f(0,500);
+    glEnd();
+    glBegin(GL_QUADS);// UPPER
+    glColor3ub(182,60, 74);
+    glVertex2f(0,510);
+    glVertex2f(1920,510);
+    glVertex2f(1920,500);
+    glVertex2f(0,500);
+    glEnd();
+    // LEFT PILLER START
+    glBegin(GL_QUADS);
+    glColor3ub(149, 36, 49);
+    glVertex2f(325,560);
+    glVertex2f(325,585);
+    glVertex2f(415,585);
+    glVertex2f(415,560);
+    glEnd();
+    glBegin(GL_QUADS);
+    glColor3ub(149, 36, 49);
+    glVertex2f(350,585);
+    glVertex2f(350,745);
+    glVertex2f(390,745);
+    glVertex2f(390,585);
+    glEnd();
+    glBegin(GL_QUADS);// UPPER
+    glColor3ub(182,60, 74);
+    glVertex2f(378,585);
+    glVertex2f(378,745);
+    glVertex2f(390,745);
+    glVertex2f(390,585);
+    glEnd();
+
+    glPushMatrix();
+    glTranslated(120,0,0);
+    glBegin(GL_QUADS);
+    glColor3ub(149, 36, 49);
+    glVertex2f(325,560);
+    glVertex2f(325,585);
+    glVertex2f(415,585);
+    glVertex2f(415,560);
+    glEnd();
+    glBegin(GL_QUADS);
+    glColor3ub(149, 36, 49);
+    glVertex2f(350,585);
+    glVertex2f(350,745);
+    glVertex2f(390,745);
+    glVertex2f(390,585);
+    glEnd();
+    glBegin(GL_QUADS);// UPPER
+    glColor3ub(182,60, 74);
+    glVertex2f(378,585);
+    glVertex2f(378,745);
+    glVertex2f(390,745);
+    glVertex2f(390,585);
+    glEnd();
+    glLoadIdentity();
+    glPopMatrix();
+    // LEFT PILLER END
+
+    //RIGHT PILLER START
+    glPushMatrix();
+    glTranslated(1060,0,0);
+    glBegin(GL_QUADS);
+    glColor3ub(149, 36, 49);
+    glVertex2f(325,560);
+    glVertex2f(325,585);
+    glVertex2f(415,585);
+    glVertex2f(415,560);
+    glEnd();
+    glBegin(GL_QUADS);
+    glColor3ub(149, 36, 49);
+    glVertex2f(350,585);
+    glVertex2f(350,745);
+    glVertex2f(390,745);
+    glVertex2f(390,585);
+    glEnd();
+    glBegin(GL_QUADS);// UPPER
+    glColor3ub(182,60, 74);
+    glVertex2f(378,585);
+    glVertex2f(378,745);
+    glVertex2f(390,745);
+    glVertex2f(390,585);
+    glEnd();
+    glPushMatrix();
+    glTranslated(120,0,0);
+    glBegin(GL_QUADS);
+    glColor3ub(149, 36, 49);
+    glVertex2f(325,560);
+    glVertex2f(325,585);
+    glVertex2f(415,585);
+    glVertex2f(415,560);
+    glEnd();
+    glBegin(GL_QUADS);
+    glColor3ub(149, 36, 49);
+    glVertex2f(350,585);
+    glVertex2f(350,745);
+    glVertex2f(390,745);
+    glVertex2f(390,585);
+    glEnd();
+    glBegin(GL_QUADS);// UPPER
+    glColor3ub(182,60, 74);
+    glVertex2f(378,585);
+    glVertex2f(378,745);
+    glVertex2f(390,745);
+    glVertex2f(390,585);
+    glEnd();
+    glLoadIdentity();
+    glPopMatrix();
+    glLoadIdentity();
+    glPopMatrix();
+    //RIGHT PILLER END
+    //BRIDE END
+
+     //BOAT START
     glPushMatrix();
     glTranslated(75,0,0);
     glLineWidth(5);
@@ -313,6 +474,8 @@ void sun_set() {
     glEnd();
     glLoadIdentity();
     glPopMatrix();
+    //BOAT END
+
 
     glFlush();
 }
