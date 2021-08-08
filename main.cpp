@@ -14,9 +14,32 @@ using namespace std;
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
 
-#define STAR_COUNT 500
+#define STAR_COUNT 300
 
-void glDrawFilledCircle(GLfloat x, GLfloat y, GLfloat radius) {
+union Color {
+  unsigned int hex;
+#if IS_BIG_ENDIAN
+  struct {
+    unsigned char r, g, b;
+  };
+#else
+  struct {
+    unsigned char b, g, r;
+  };
+#endif
+};
+struct GLColorRGB {
+  GLfloat r, g, b;
+};
+
+GLColorRGB Hex2glRGB(unsigned int hex) {
+  union Color _hex;
+  _hex.hex = hex;
+  GLColorRGB rgb;
+  return {_hex.r / 255.f, _hex.g / 255.f, _hex.b / 255.f};
+}
+
+void drawFilledCircle(GLfloat x, GLfloat y, GLfloat radius) {
   int i;
   int triangleAmount = 255;
 
@@ -29,19 +52,77 @@ void glDrawFilledCircle(GLfloat x, GLfloat y, GLfloat radius) {
   glEnd();
 }
 
+void drawLine(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2) {
+  glBegin(GL_LINES);
+  glVertex2f(x1, y1);
+  glVertex2f(x2, y2);
+  glEnd();
+}
+
+void drawQuadUnit() {
+  glBegin(GL_QUADS);
+  float coords[] = {0, 0, 1, 0, 1, 1, 0, 1};
+  glVertex2fv(coords);
+  glVertex2fv(coords + 2);
+  glVertex2fv(coords + 4);
+  glVertex2fv(coords + 6);
+  glEnd();
+}
+void drawQuad(GLfloat width, GLfloat height) {
+  glPushMatrix();
+  glScalef(width, height, 0);
+  drawQuadUnit();
+  glPopMatrix();
+};
+void drawQuad(GLfloat x, GLfloat y, GLfloat width, GLfloat height) {
+  glPushMatrix();
+  glTranslatef(x, y, 0.f);
+  drawQuad(width, height);
+  glPopMatrix();
+}
+void drawQuad(GLfloat size) { drawQuad(size, size); };
+void drawQuad(GLfloat x, GLfloat y, GLfloat size) {
+  drawQuad(x, y, size, size);
+};
+struct Point {
+  GLfloat x;
+  GLfloat y;
+};
+void glDrawPolygon(vector<Point> poly_cords) {
+  glBegin(GL_POLYGON);
+  for (auto cord : poly_cords) {
+    glVertex2fv((GLfloat *)&cord);
+  }
+  glEnd();
+}
+void glDrawCubicBezierCurve(Point controls[4]) {
+  Point p0 = controls[0], p1 = controls[1], p2 = controls[2], p3 = controls[3];
+  for (float t = 0.f; t <= 1.f; t += .01f) {
+    Point l0 = {(1 - t) * p0.x + t * p1.x, (1 - t) * p0.y + t * p1.y};
+    Point l1 = {(1 - t) * p1.x + t * p2.x, (1 - t) * p1.y + t * p2.y};
+    Point l2 = {(1 - t) * p2.x + t * p3.x, (1 - t) * p2.y + t * p3.y};
+
+    Point q0 = {(1 - t) * l0.x + t * l1.x, (1 - t) * l0.y + t * l1.y};
+    Point q1 = {(1 - t) * l1.x + t * l2.x, (1 - t) * l1.y + t * l2.y};
+
+    Point c0 = {(1 - t) * q0.x + t * q1.x, (1 - t) * q0.y + t * q1.y};
+
+    glVertex2fv((GLfloat *)&c0);
+  }
+}
 void drawSun() {
   glColor4ub(243, 238, 191, 255 * .05);
-  glDrawFilledCircle(1170, 740, 190);
+  drawFilledCircle(1170, 740, 190);
   glColor4ub(243, 238, 191, 255 * .1);
-  glDrawFilledCircle(1170, 740, 160);
+  drawFilledCircle(1170, 740, 160);
   glColor3ub(243, 238, 191);
-  glDrawFilledCircle(1170, 740, 135);
+  drawFilledCircle(1170, 740, 135);
 }
 void glDrawStar() {
   glColor4f(1, 1, 1, 0.1);
-  glDrawFilledCircle(0, 0, .2);
+  drawFilledCircle(0, 0, .2);
   glColor3f(.8, .8, .8);
-  glDrawFilledCircle(0, 0, .1);
+  drawFilledCircle(0, 0, .1);
 }
 struct STAR_META {
   int x;
@@ -76,6 +157,211 @@ void drawStars(GLfloat widht, GLfloat height) {
     stars_meta[n] = star;
   }
   ran_once = true;
+}
+
+void drawBridgeHangers() {}
+void drawBridgeCables() {
+  Point cable_1[] = {
+      {459.3, 256}, {459.3, 256}, {(1469.2 + 459.3) / 2, 760}, {1469.2, 256}};
+  glColor3f(1, 0, 0);
+  glBegin(GL_LINE_STRIP);
+  glVertex2fv((GLfloat *)&cable_1[0]);
+  glVertex2fv((GLfloat *)&cable_1[1]);
+  glVertex2fv((GLfloat *)&cable_1[2]);
+  glVertex2fv((GLfloat *)&cable_1[3]);
+  glEnd();
+  auto cable_1_color = Hex2glRGB(0xbe1e2d);
+  glColor3fv((GLfloat *)&cable_1_color);
+  glBegin(GL_LINE_STRIP);
+  glDrawCubicBezierCurve(cable_1);
+  glEnd();
+
+  Point cable_2[] = {
+      {480.8, 423}, {480.8, 423}, {(480.8 + 1447.1) / 2, 572}, {1447.1, 423}};
+  glColor3f(1, 0, 0);
+  glBegin(GL_LINE_STRIP);
+  glVertex2fv((GLfloat *)&cable_2[0]);
+  glVertex2fv((GLfloat *)&cable_2[1]);
+  glVertex2fv((GLfloat *)&cable_2[2]);
+  glVertex2fv((GLfloat *)&cable_2[3]);
+  glEnd();
+  auto cable_2_color = Hex2glRGB(0xbe1e2d);
+  glColor3fv((GLfloat *)&cable_2_color);
+  glBegin(GL_LINE_STRIP);
+  glDrawCubicBezierCurve(cable_2);
+  glEnd();
+}
+void drawBridgeTowers() {
+  glColor3ub(182, 60, 74);
+  drawQuad(407.8, 168, 13.5, 76.4);
+  glColor3ub(149, 36, 49);
+  drawQuad(407.8, 168, 9, 76.4);
+  glColor3ub(182, 60, 74);
+  drawQuad(449.9, 168, 13.5, 76.4);
+  glColor3ub(149, 36, 49);
+  drawQuad(449.9, 168, 9, 76.4);
+  glColor3ub(149, 36, 49);
+  drawQuad(407.8, 183.2, 55.6, 6.4);
+
+  glColor3ub(182, 60, 74);
+  drawQuad(396.5, 243.7, 17.4, 65.5);
+  glColor3ub(149, 36, 49);
+  drawQuad(396.5, 243.7, 11.6, 65.5);
+  glColor3ub(182, 60, 74);
+  drawQuad(450.8, 243.7, 17.4, 65.5);
+  glColor3ub(149, 36, 49);
+  drawQuad(450.8, 243.7, 11.6, 65.5);
+  glColor3ub(149, 36, 49);
+  drawQuad(396.5, 240.6, 71.7, 4.1);
+
+  glColor3ub(182, 60, 74);
+  drawQuad(386.1, 313.9, 22.4, 84.4);
+  glColor3ub(149, 36, 49);
+  drawQuad(386.1, 313.9, 15, 84.4);
+  glColor3ub(182, 60, 74);
+  drawQuad(456.1, 313.9, 22.4, 84.4);
+  glColor3ub(149, 36, 49);
+  drawQuad(456.1, 313.9, 15, 84.4);
+  glColor3ub(149, 36, 49);
+  drawQuad(386.1, 309, 92.5, 5.3);
+
+  glColor3ub(182, 60, 74);
+  drawQuad(372.7, 405, 28.9, 108.8);
+  glColor3ub(149, 36, 49);
+  drawQuad(372.7, 405, 19.3, 108.8);
+  glColor3ub(182, 60, 74);
+  drawQuad(463, 405, 28.9, 108.8);
+  glColor3ub(149, 36, 49);
+  drawQuad(463, 405, 19.3, 108.8);
+  glColor3ub(149, 36, 49);
+  drawQuad(372.7, 398.1, 119.2, 6.9);
+}
+void drawBridge() {
+  drawBridgeHangers();
+  drawBridgeCables();
+  // left
+  drawBridgeTowers();
+  // right
+  glPushMatrix();
+  glTranslated(1062, 0, 0);
+  drawBridgeTowers();
+  glPopMatrix();
+
+  // BRIDGE START
+  glBegin(GL_QUADS);
+  glColor3ub(149, 36, 49);
+  glVertex2f(0, 560);
+  glVertex2f(1920, 560);
+  glVertex2f(1920, 500);
+  glVertex2f(0, 500);
+  glEnd();
+  glBegin(GL_QUADS); // UPPER
+  glColor3ub(182, 60, 74);
+  glVertex2f(0, 510);
+  glVertex2f(1920, 510);
+  glVertex2f(1920, 500);
+  glVertex2f(0, 500);
+  glEnd();
+  // LEFT PILLER START
+  glBegin(GL_QUADS);
+  glColor3ub(149, 36, 49);
+  glVertex2f(325, 560);
+  glVertex2f(325, 585);
+  glVertex2f(415, 585);
+  glVertex2f(415, 560);
+  glEnd();
+  glBegin(GL_QUADS);
+  glColor3ub(149, 36, 49);
+  glVertex2f(350, 585);
+  glVertex2f(350, 745);
+  glVertex2f(390, 745);
+  glVertex2f(390, 585);
+  glEnd();
+  glBegin(GL_QUADS); // UPPER
+  glColor3ub(182, 60, 74);
+  glVertex2f(378, 585);
+  glVertex2f(378, 745);
+  glVertex2f(390, 745);
+  glVertex2f(390, 585);
+  glEnd();
+
+  glPushMatrix();
+  glTranslated(120, 0, 0);
+  glBegin(GL_QUADS);
+  glColor3ub(149, 36, 49);
+  glVertex2f(325, 560);
+  glVertex2f(325, 585);
+  glVertex2f(415, 585);
+  glVertex2f(415, 560);
+  glEnd();
+  glBegin(GL_QUADS);
+  glColor3ub(149, 36, 49);
+  glVertex2f(350, 585);
+  glVertex2f(350, 745);
+  glVertex2f(390, 745);
+  glVertex2f(390, 585);
+  glEnd();
+  glBegin(GL_QUADS); // UPPER
+  glColor3ub(182, 60, 74);
+  glVertex2f(378, 585);
+  glVertex2f(378, 745);
+  glVertex2f(390, 745);
+  glVertex2f(390, 585);
+  glEnd();
+  glPopMatrix();
+  // LEFT PILLER END
+
+  // RIGHT PILLER START
+  glPushMatrix();
+  glTranslated(1060, 0, 0);
+  glBegin(GL_QUADS);
+  glColor3ub(149, 36, 49);
+  glVertex2f(325, 560);
+  glVertex2f(325, 585);
+  glVertex2f(415, 585);
+  glVertex2f(415, 560);
+  glEnd();
+  glBegin(GL_QUADS);
+  glColor3ub(149, 36, 49);
+  glVertex2f(350, 585);
+  glVertex2f(350, 745);
+  glVertex2f(390, 745);
+  glVertex2f(390, 585);
+  glEnd();
+  glBegin(GL_QUADS); // UPPER
+  glColor3ub(182, 60, 74);
+  glVertex2f(378, 585);
+  glVertex2f(378, 745);
+  glVertex2f(390, 745);
+  glVertex2f(390, 585);
+  glEnd();
+  glPushMatrix();
+  glTranslated(120, 0, 0);
+  glBegin(GL_QUADS);
+  glColor3ub(149, 36, 49);
+  glVertex2f(325, 560);
+  glVertex2f(325, 585);
+  glVertex2f(415, 585);
+  glVertex2f(415, 560);
+  glEnd();
+  glBegin(GL_QUADS);
+  glColor3ub(149, 36, 49);
+  glVertex2f(350, 585);
+  glVertex2f(350, 745);
+  glVertex2f(390, 745);
+  glVertex2f(390, 585);
+  glEnd();
+  glBegin(GL_QUADS); // UPPER
+  glColor3ub(182, 60, 74);
+  glVertex2f(378, 585);
+  glVertex2f(378, 745);
+  glVertex2f(390, 745);
+  glVertex2f(390, 585);
+  glEnd();
+  glPopMatrix();
+  glPopMatrix();
+  // RIGHT PILLER END
+  // BRIDE END
 }
 void drawSunset() {
   // SKY START
@@ -362,121 +648,7 @@ void drawSunset() {
   glEnd();
   glPopMatrix();
 
-  // BRIDGE START
-  glBegin(GL_QUADS);
-  glColor3ub(149, 36, 49);
-  glVertex2f(0, 560);
-  glVertex2f(1920, 560);
-  glVertex2f(1920, 500);
-  glVertex2f(0, 500);
-  glEnd();
-  glBegin(GL_QUADS); // UPPER
-  glColor3ub(182, 60, 74);
-  glVertex2f(0, 510);
-  glVertex2f(1920, 510);
-  glVertex2f(1920, 500);
-  glVertex2f(0, 500);
-  glEnd();
-  // LEFT PILLER START
-  glBegin(GL_QUADS);
-  glColor3ub(149, 36, 49);
-  glVertex2f(325, 560);
-  glVertex2f(325, 585);
-  glVertex2f(415, 585);
-  glVertex2f(415, 560);
-  glEnd();
-  glBegin(GL_QUADS);
-  glColor3ub(149, 36, 49);
-  glVertex2f(350, 585);
-  glVertex2f(350, 745);
-  glVertex2f(390, 745);
-  glVertex2f(390, 585);
-  glEnd();
-  glBegin(GL_QUADS); // UPPER
-  glColor3ub(182, 60, 74);
-  glVertex2f(378, 585);
-  glVertex2f(378, 745);
-  glVertex2f(390, 745);
-  glVertex2f(390, 585);
-  glEnd();
-
-  glPushMatrix();
-  glTranslated(120, 0, 0);
-  glBegin(GL_QUADS);
-  glColor3ub(149, 36, 49);
-  glVertex2f(325, 560);
-  glVertex2f(325, 585);
-  glVertex2f(415, 585);
-  glVertex2f(415, 560);
-  glEnd();
-  glBegin(GL_QUADS);
-  glColor3ub(149, 36, 49);
-  glVertex2f(350, 585);
-  glVertex2f(350, 745);
-  glVertex2f(390, 745);
-  glVertex2f(390, 585);
-  glEnd();
-  glBegin(GL_QUADS); // UPPER
-  glColor3ub(182, 60, 74);
-  glVertex2f(378, 585);
-  glVertex2f(378, 745);
-  glVertex2f(390, 745);
-  glVertex2f(390, 585);
-  glEnd();
-  glPopMatrix();
-  // LEFT PILLER END
-
-  // RIGHT PILLER START
-  glPushMatrix();
-  glTranslated(1060, 0, 0);
-  glBegin(GL_QUADS);
-  glColor3ub(149, 36, 49);
-  glVertex2f(325, 560);
-  glVertex2f(325, 585);
-  glVertex2f(415, 585);
-  glVertex2f(415, 560);
-  glEnd();
-  glBegin(GL_QUADS);
-  glColor3ub(149, 36, 49);
-  glVertex2f(350, 585);
-  glVertex2f(350, 745);
-  glVertex2f(390, 745);
-  glVertex2f(390, 585);
-  glEnd();
-  glBegin(GL_QUADS); // UPPER
-  glColor3ub(182, 60, 74);
-  glVertex2f(378, 585);
-  glVertex2f(378, 745);
-  glVertex2f(390, 745);
-  glVertex2f(390, 585);
-  glEnd();
-  glPushMatrix();
-  glTranslated(120, 0, 0);
-  glBegin(GL_QUADS);
-  glColor3ub(149, 36, 49);
-  glVertex2f(325, 560);
-  glVertex2f(325, 585);
-  glVertex2f(415, 585);
-  glVertex2f(415, 560);
-  glEnd();
-  glBegin(GL_QUADS);
-  glColor3ub(149, 36, 49);
-  glVertex2f(350, 585);
-  glVertex2f(350, 745);
-  glVertex2f(390, 745);
-  glVertex2f(390, 585);
-  glEnd();
-  glBegin(GL_QUADS); // UPPER
-  glColor3ub(182, 60, 74);
-  glVertex2f(378, 585);
-  glVertex2f(378, 745);
-  glVertex2f(390, 745);
-  glVertex2f(390, 585);
-  glEnd();
-  glPopMatrix();
-  glPopMatrix();
-  // RIGHT PILLER END
-  // BRIDE END
+  drawBridge();
 
   // BOAT START
   glPushMatrix();
