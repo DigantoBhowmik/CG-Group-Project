@@ -203,7 +203,7 @@ void drawBridgeCables() {
     for (int i = 1; i < vertices.size(); i += 10) {
       auto vertex = vertices[i];
       glLineWidth(5);
-      drawLine(vertex.x, vertex.y, vertex.x, 500);
+      drawLine(vertex.x, vertex.y, vertex.x, 505);
     }
   }
 }
@@ -742,7 +742,7 @@ void render(void) {
 int main(int argc, char *argv[]) {
   glutInit(&argc, argv);
 
-  glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+  // glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 
   glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
