@@ -16,6 +16,8 @@ using namespace std;
 
 #define STAR_COUNT 300
 
+float ship_speed = 1;
+
 union Color {
   unsigned int hex;
 #if IS_BIG_ENDIAN
@@ -113,6 +115,22 @@ vector<Vertex> getCubicBezierCurvePoints(Vertex controls[4]) {
   }
   return vertices;
 }
+vector<Vertex> getQuadBezierCurvePoints(Vertex controls[3]) {
+  Vertex p0 = controls[0], p1 = controls[1], p2 = controls[2];
+
+  auto precision = .01;
+
+  vector<Vertex> vertices;
+  for (float t = 0.f; t <= 1.f; t += precision) {
+    Vertex l0 = {(1 - t) * p0.x + t * p1.x, (1 - t) * p0.y + t * p1.y};
+    Vertex l1 = {(1 - t) * p1.x + t * p2.x, (1 - t) * p1.y + t * p2.y};
+
+    Vertex q0 = {(1 - t) * l0.x + t * l1.x, (1 - t) * l0.y + t * l1.y};
+
+    vertices.push_back(q0);
+  }
+  return vertices;
+}
 void drawSun() {
   glColor4ub(243, 238, 191, 255 * .05);
   drawFilledCircle(1170, 740, 190);
@@ -123,7 +141,7 @@ void drawSun() {
 }
 void glDrawStar() {
   glColor4f(1, 1, 1, 0.1);
-  drawFilledCircle(0, 0, .2);
+  drawFilledCircle(0, 0, .25);
   glColor3f(.8, .8, .8);
   drawFilledCircle(0, 0, .1);
 }
@@ -160,27 +178,19 @@ void drawStars(GLfloat widht, GLfloat height) {
   }
   return;
 }
-
-void drawBridgeHangers() {}
 void drawBridgeCables() {
   static bool ran_once = false;
   static vector<vector<Vertex>> interpolated_vertices;
   if (!ran_once) {
     vector<Vertex> cables[] = {
-        {{459.3, 256},
-         {459.3, 256},
-         {(1469.2 + 459.3) / 2, 760},
-         {1469.2, 256}},
-        {{480.8, 423},
-         {480.8, 423},
-         {(480.8 + 1447.1) / 2, 572},
-         {1447.1, 423}},
-        {{0, 496}, {0, 496}, {250, 496}, {405.2, 293.8}},
-        {{0, 496}, {0, 496}, {300, 496}, {405.2, 377}},
-        {{1920, 496}, {1920, 496}, {1733, 496}, {1522.7, 302.2}},
-        {{1920, 496}, {1920, 496}, {1733, 496}, {1522.7, 384.9}}};
+        {{455, 256}, {(1469.2 + 455) / 2, 650}, {1469.2, 256}},
+        {{480.8, 423}, {(480.8 + 1447.1) / 2, 530}, {1447.1, 423}},
+        {{0, 496}, {250, 496}, {405.2, 293.8}},
+        {{0, 496}, {300, 496}, {405.2, 377}},
+        {{1920, 496}, {1733, 496}, {1522.7, 302.2}},
+        {{1920, 496}, {1733, 496}, {1522.7, 384.9}}};
     for (auto cable : cables) {
-      interpolated_vertices.push_back(getCubicBezierCurvePoints(cable.data()));
+      interpolated_vertices.push_back(getQuadBezierCurvePoints(cable.data()));
     }
     ran_once = true;
   }
@@ -191,12 +201,52 @@ void drawBridgeCables() {
     glBegin(GL_LINE_STRIP);
     drawVertices(vertices);
     glEnd();
-    for (int i = 20; i < vertices.size() - 10; i += 10) {
+    for (int i = 1; i < vertices.size(); i += 10) {
       auto vertex = vertices[i];
       glLineWidth(5);
       drawLine(vertex.x, vertex.y, vertex.x, 500);
     }
   }
+}
+
+void drawShip() {
+  int size = 200;
+  static int x = WINDOW_WIDTH - size;
+  auto ship_color = Hex2glRGB(0x75181D);
+  glColor3fv((GLfloat *)&ship_color);
+
+  glPushMatrix();
+  glTranslatef(x, 720, 0);
+  glScalef(60, 50, 0);
+  glBegin(GL_TRIANGLES);
+  glVertex2f(0, 1);
+  glVertex2f(.40, 0);
+  glVertex2f(.40, 1);
+  glEnd();
+  glBegin(GL_QUADS);
+  float pal[] = {.45, 0, .45, 1, .50, 1, .50, .2};
+  glVertex2fv(pal);
+  glVertex2fv(pal + 2);
+  glVertex2fv(pal + 4);
+  glVertex2fv(pal + 6);
+  glEnd();
+  glBegin(GL_TRIANGLES);
+  glVertex2f(.55, .2);
+  glVertex2f(.55, 1);
+  glVertex2f(1, 1);
+  glEnd();
+  glBegin(GL_QUADS);
+  float base[] = {-.2, 1.1, 0, 1.4, 1.1, 1.4, 1.2, 1.1};
+  glVertex2fv(base);
+  glVertex2fv(base + 2);
+  glVertex2fv(base + 4);
+  glVertex2fv(base + 6);
+  glEnd();
+  glPopMatrix();
+
+  x -= ship_speed;
+  if (x < 0)
+    x = WINDOW_WIDTH - 200;
 }
 void drawBridgeTowers() {
   glColor3ub(182, 60, 74);
@@ -244,7 +294,6 @@ void drawBridgeTowers() {
   drawQuad(372.7, 398.1, 119.2, 6.9);
 }
 void drawBridge() {
-  drawBridgeHangers();
   drawBridgeCables();
   // left
   drawBridgeTowers();
@@ -656,62 +705,7 @@ void drawSunset() {
   glPopMatrix();
 
   drawBridge();
-
-  // BOAT START
-  glPushMatrix();
-  glTranslated(75, 0, 0);
-  glLineWidth(5);
-  glBegin(GL_LINES);
-  glColor3ub(129, 42, 53);
-  glVertex2f(620, 802);
-  glVertex2f(620, 771);
-  glEnd();
-
-  glBegin(GL_QUADS);
-  glColor3ub(119, 22, 26);
-  glVertex2f(675, 835);
-  glVertex2f(698, 802);
-  glVertex2f(560, 802);
-  glVertex2f(560, 835);
-  glEnd();
-
-  glBegin(GL_POLYGON);
-  glColor3ub(119, 22, 26);
-  glVertex2f(725, 782);
-  glVertex2f(620, 638);
-  glVertex2f(620, 709);
-  glVertex2f(587, 660);
-  glVertex2f(542, 781);
-  glEnd();
-  glPopMatrix();
-
-  glPushMatrix();
-  glTranslated(980, 0, 0);
-  glLineWidth(5);
-  glBegin(GL_LINES);
-  glColor3ub(129, 42, 53);
-  glVertex2f(620, 802);
-  glVertex2f(620, 771);
-  glEnd();
-
-  glBegin(GL_QUADS);
-  glColor3ub(119, 22, 26);
-  glVertex2f(675, 835);
-  glVertex2f(698, 802);
-  glVertex2f(560, 802);
-  glVertex2f(560, 835);
-  glEnd();
-
-  glBegin(GL_POLYGON);
-  glColor3ub(119, 22, 26);
-  glVertex2f(725, 782);
-  glVertex2f(620, 638);
-  glVertex2f(620, 709);
-  glVertex2f(587, 660);
-  glVertex2f(542, 781);
-  glEnd();
-  glPopMatrix();
-  // BOAT END
+  drawShip();
 }
 
 void draw() { drawSunset(); }
