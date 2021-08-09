@@ -1,4 +1,3 @@
-#include <GL/freeglut_std.h>
 #include <GL/glut.h>
 #include <array>
 #include <chrono>
