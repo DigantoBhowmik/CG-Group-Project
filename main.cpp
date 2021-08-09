@@ -1,5 +1,5 @@
-#include <GL/gl.h>
-#include <GLFW/glfw3.h>
+#include <GL/freeglut_std.h>
+#include <GL/glut.h>
 #include <array>
 #include <chrono>
 #include <math.h>
@@ -710,27 +710,11 @@ void drawSunset() {
 
 void draw() { drawSunset(); }
 
-void renderLoop(GLFWwindow *window) {
-  if (glfwWindowShouldClose(window))
-    return;
+void resize(int width, int height) {
+  if (height == 0) {
+    height = 1;
+  }
 
-  glClearColor(0, 0, 0, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  draw();
-
-  glfwSwapInterval(1);
-  glfwSwapBuffers(window);
-
-  glfwPollEvents();
-
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  renderLoop(window);
-}
-void set_framebuffer_size(GLFWwindow *window, int width, int height) {
-  const float targetAspect = float(WINDOW_WIDTH) / WINDOW_HEIGHT;
   float aspect = (float)width / height;
 
   glViewport(0, 0, width, height);
@@ -742,31 +726,34 @@ void set_framebuffer_size(GLFWwindow *window, int width, int height) {
   glMatrixMode(GL_MODELVIEW);
 }
 
-int main(void) {
-  GLFWwindow *window;
+void render(void) {
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  if (!glfwInit())
-    return -1;
+  glClearColor(0, 0, 0, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
 
-  window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "CG Final Project",
-                            NULL, NULL);
-  glfwSetWindowPos(window, WINDOW_WIDTH, 0);
-  glfwSetWindowAspectRatio(window, WINDOW_WIDTH, WINDOW_HEIGHT);
-  // glfwSetWindowAttrib(window, GLFW_FLOATING, GLFW_TRUE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  if (!window) {
-    glfwTerminate();
-    return -1;
-  }
+  draw();
 
-  glfwSetFramebufferSizeCallback(window, set_framebuffer_size);
+  glutSwapBuffers();
+}
 
-  glfwMakeContextCurrent(window);
+int main(int argc, char *argv[]) {
+  glutInit(&argc, argv);
 
-  set_framebuffer_size(window, WINDOW_WIDTH, WINDOW_HEIGHT);
+  glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 
-  renderLoop(window);
+  glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-  glfwTerminate();
+  glutCreateWindow("CG Final Project");
+
+  glutDisplayFunc(render);
+  glutReshapeFunc(resize);
+  glutIdleFunc(render);
+
+  glutMainLoop();
+
   return 0;
 }
