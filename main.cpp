@@ -84,31 +84,34 @@ void drawQuad(GLfloat size) { drawQuad(size, size); };
 void drawQuad(GLfloat x, GLfloat y, GLfloat size) {
   drawQuad(x, y, size, size);
 };
-struct Point {
+struct Vertex {
   GLfloat x;
   GLfloat y;
 };
-void glDrawPolygon(vector<Point> poly_cords) {
-  glBegin(GL_POLYGON);
-  for (auto cord : poly_cords) {
+void drawVertices(vector<Vertex> vertices) {
+  for (auto cord : vertices) {
     glVertex2fv((GLfloat *)&cord);
   }
-  glEnd();
 }
-void glDrawCubicBezierCurve(Point controls[4]) {
-  Point p0 = controls[0], p1 = controls[1], p2 = controls[2], p3 = controls[3];
-  for (float t = 0.f; t <= 1.f; t += .01f) {
-    Point l0 = {(1 - t) * p0.x + t * p1.x, (1 - t) * p0.y + t * p1.y};
-    Point l1 = {(1 - t) * p1.x + t * p2.x, (1 - t) * p1.y + t * p2.y};
-    Point l2 = {(1 - t) * p2.x + t * p3.x, (1 - t) * p2.y + t * p3.y};
+vector<Vertex> getCubicBezierCurvePoints(Vertex controls[4]) {
+  Vertex p0 = controls[0], p1 = controls[1], p2 = controls[2], p3 = controls[3];
 
-    Point q0 = {(1 - t) * l0.x + t * l1.x, (1 - t) * l0.y + t * l1.y};
-    Point q1 = {(1 - t) * l1.x + t * l2.x, (1 - t) * l1.y + t * l2.y};
+  auto precision = .01;
 
-    Point c0 = {(1 - t) * q0.x + t * q1.x, (1 - t) * q0.y + t * q1.y};
+  vector<Vertex> vertices;
+  for (float t = 0.f; t <= 1.f; t += precision) {
+    Vertex l0 = {(1 - t) * p0.x + t * p1.x, (1 - t) * p0.y + t * p1.y};
+    Vertex l1 = {(1 - t) * p1.x + t * p2.x, (1 - t) * p1.y + t * p2.y};
+    Vertex l2 = {(1 - t) * p2.x + t * p3.x, (1 - t) * p2.y + t * p3.y};
 
-    glVertex2fv((GLfloat *)&c0);
+    Vertex q0 = {(1 - t) * l0.x + t * l1.x, (1 - t) * l0.y + t * l1.y};
+    Vertex q1 = {(1 - t) * l1.x + t * l2.x, (1 - t) * l1.y + t * l2.y};
+
+    Vertex c0 = {(1 - t) * q0.x + t * q1.x, (1 - t) * q0.y + t * q1.y};
+
+    vertices.push_back(c0);
   }
+  return vertices;
 }
 void drawSun() {
   glColor4ub(243, 238, 191, 255 * .05);
@@ -133,63 +136,67 @@ void drawStars(GLfloat widht, GLfloat height) {
   static bool ran_once = false;
   static STAR_META stars_meta[STAR_COUNT];
 
-  if (ran_once) {
+  if (!ran_once) {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> u_rand_x(0, widht);
+    uniform_int_distribution<> u_rand_y(0, height);
+    uniform_int_distribution<> u_rand_r(15, 30);
+
     for (int n = 0; n < STAR_COUNT; ++n) {
-      STAR_META star = stars_meta[n];
-
-      glPushMatrix();
-      glTranslatef(star.x, star.y, 0.f);
-      glScalef(star.r, star.r, 1.0f);
-      glDrawStar();
-      glPopMatrix();
+      int x = u_rand_x(gen), y = u_rand_y(gen), r = u_rand_r(gen);
+      STAR_META star = {x, y, r};
+      stars_meta[n] = star;
     }
-    return;
+    ran_once = true;
   }
-  random_device rd;
-  mt19937 gen(rd());
-  uniform_int_distribution<> u_rand_x(0, widht);
-  uniform_int_distribution<> u_rand_y(0, height);
-  uniform_int_distribution<> u_rand_r(15, 30);
 
-  for (int n = 0; n < STAR_COUNT; ++n) {
-    int x = u_rand_x(gen), y = u_rand_y(gen), r = u_rand_r(gen);
-    STAR_META star = {x, y, r};
-    stars_meta[n] = star;
+  for (auto star : stars_meta) {
+    glPushMatrix();
+    glTranslatef(star.x, star.y, 0.f);
+    glScalef(star.r, star.r, 1.0f);
+    glDrawStar();
+    glPopMatrix();
   }
-  ran_once = true;
+  return;
 }
 
 void drawBridgeHangers() {}
 void drawBridgeCables() {
-  Point cable_1[] = {
-      {459.3, 256}, {459.3, 256}, {(1469.2 + 459.3) / 2, 760}, {1469.2, 256}};
-  glColor3f(1, 0, 0);
-  glBegin(GL_LINE_STRIP);
-  glVertex2fv((GLfloat *)&cable_1[0]);
-  glVertex2fv((GLfloat *)&cable_1[1]);
-  glVertex2fv((GLfloat *)&cable_1[2]);
-  glVertex2fv((GLfloat *)&cable_1[3]);
-  glEnd();
-  auto cable_1_color = Hex2glRGB(0xbe1e2d);
-  glColor3fv((GLfloat *)&cable_1_color);
-  glBegin(GL_LINE_STRIP);
-  glDrawCubicBezierCurve(cable_1);
-  glEnd();
-
-  Point cable_2[] = {
-      {480.8, 423}, {480.8, 423}, {(480.8 + 1447.1) / 2, 572}, {1447.1, 423}};
-  glColor3f(1, 0, 0);
-  glBegin(GL_LINE_STRIP);
-  glVertex2fv((GLfloat *)&cable_2[0]);
-  glVertex2fv((GLfloat *)&cable_2[1]);
-  glVertex2fv((GLfloat *)&cable_2[2]);
-  glVertex2fv((GLfloat *)&cable_2[3]);
-  glEnd();
-  auto cable_2_color = Hex2glRGB(0xbe1e2d);
-  glColor3fv((GLfloat *)&cable_2_color);
-  glBegin(GL_LINE_STRIP);
-  glDrawCubicBezierCurve(cable_2);
-  glEnd();
+  static bool ran_once = false;
+  static vector<vector<Vertex>> interpolated_vertices;
+  if (!ran_once) {
+    vector<Vertex> cables[] = {
+        {{459.3, 256},
+         {459.3, 256},
+         {(1469.2 + 459.3) / 2, 760},
+         {1469.2, 256}},
+        {{480.8, 423},
+         {480.8, 423},
+         {(480.8 + 1447.1) / 2, 572},
+         {1447.1, 423}},
+        {{0, 496}, {0, 496}, {250, 496}, {405.2, 293.8}},
+        {{0, 496}, {0, 496}, {300, 496}, {405.2, 377}},
+        {{1920, 496}, {1920, 496}, {1733, 496}, {1522.7, 302.2}},
+        {{1920, 496}, {1920, 496}, {1733, 496}, {1522.7, 384.9}}};
+    for (auto cable : cables) {
+      interpolated_vertices.push_back(getCubicBezierCurvePoints(cable.data()));
+    }
+    ran_once = true;
+  }
+  auto cable_color = Hex2glRGB(0xbe1e2d);
+  glColor3fv((GLfloat *)&cable_color);
+  for (auto vertices : interpolated_vertices) {
+    glLineWidth(8);
+    glBegin(GL_LINE_STRIP);
+    drawVertices(vertices);
+    glEnd();
+    for (int i = 20; i < vertices.size() - 10; i += 10) {
+      auto vertex = vertices[i];
+      glLineWidth(5);
+      drawLine(vertex.x, vertex.y, vertex.x, 500);
+    }
+  }
 }
 void drawBridgeTowers() {
   glColor3ub(182, 60, 74);
