@@ -1,6 +1,9 @@
+#include <GL/freeglut_std.h>
 #include <GL/glut.h>
 #include <array>
 #include <chrono>
+#include <cmath>
+#include <iostream>
 #include <math.h>
 #include <random>
 #include <tuple>
@@ -149,14 +152,14 @@ struct STAR_META {
   int y;
   int r;
 };
-void drawStars(GLfloat widht, GLfloat height) {
+void drawStars(GLfloat width, GLfloat height) {
   static bool ran_once = false;
   static STAR_META stars_meta[STAR_COUNT];
 
   if (!ran_once) {
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<> u_rand_x(0, widht);
+    uniform_int_distribution<> u_rand_x(0, width);
     uniform_int_distribution<> u_rand_y(0, height);
     uniform_int_distribution<> u_rand_r(15, 30);
 
@@ -208,45 +211,76 @@ void drawBridgeCables() {
   }
 }
 
-void drawShip() {
-  int size = 200;
-  static int x = WINDOW_WIDTH - size;
-  auto ship_color = Hex2glRGB(0x75181D);
-  glColor3fv((GLfloat *)&ship_color);
+class Ship {
+private:
+  int x, y, width, height, direction;
+  unsigned int color;
+  void draw() {
+    auto ship_color = Hex2glRGB(color);
+    glColor3fv((GLfloat *)&ship_color);
 
-  glPushMatrix();
-  glTranslatef(x, 720, 0);
-  glScalef(60, 50, 0);
-  glBegin(GL_TRIANGLES);
-  glVertex2f(0, 1);
-  glVertex2f(.40, 0);
-  glVertex2f(.40, 1);
-  glEnd();
-  glBegin(GL_QUADS);
-  float pal[] = {.45, 0, .45, 1, .50, 1, .50, .2};
-  glVertex2fv(pal);
-  glVertex2fv(pal + 2);
-  glVertex2fv(pal + 4);
-  glVertex2fv(pal + 6);
-  glEnd();
-  glBegin(GL_TRIANGLES);
-  glVertex2f(.55, .2);
-  glVertex2f(.55, 1);
-  glVertex2f(1, 1);
-  glEnd();
-  glBegin(GL_QUADS);
-  float base[] = {-.2, 1.1, 0, 1.4, 1.1, 1.4, 1.2, 1.1};
-  glVertex2fv(base);
-  glVertex2fv(base + 2);
-  glVertex2fv(base + 4);
-  glVertex2fv(base + 6);
-  glEnd();
-  glPopMatrix();
+    glPushMatrix();
+    glTranslatef(x, y, 0);
+    if (direction < 0) {
+      glScalef(width, height, 0);
+    } else {
+      glScalef(-width, height, 0);
+    }
+    glBegin(GL_TRIANGLES);
+    glVertex2f(0, 1);
+    glVertex2f(.40, 0);
+    glVertex2f(.40, 1);
+    glEnd();
+    glBegin(GL_QUADS);
+    float pal[] = {.45, 0, .45, 1, .50, 1, .50, .2};
+    glVertex2fv(pal);
+    glVertex2fv(pal + 2);
+    glVertex2fv(pal + 4);
+    glVertex2fv(pal + 6);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex2f(.55, .2);
+    glVertex2f(.55, 1);
+    glVertex2f(1, 1);
+    glEnd();
+    glBegin(GL_QUADS);
+    float base[] = {-.2, 1.1, 0, 1.4, 1.1, 1.4, 1.2, 1.1};
+    glVertex2fv(base);
+    glVertex2fv(base + 2);
+    glVertex2fv(base + 4);
+    glVertex2fv(base + 6);
+    glEnd();
+    glPopMatrix();
+  }
 
-  x -= ship_speed;
-  if (x < 0)
-    x = WINDOW_WIDTH - 200;
-}
+public:
+  Ship(int width, int height, int y, int direction, int color) {
+    this->y = y;
+    this->color = color;
+    this->width = width;
+    this->height = height;
+    this->direction = direction;
+    if (direction < 0) {
+      x = WINDOW_WIDTH - width;
+    } else {
+      x = -width;
+    }
+  }
+  void update() {
+    if (direction < 0) {
+      x -= abs(direction);
+
+      if (x < -width)
+        direction = abs(direction);
+    } else {
+      x += direction;
+
+      if (x > WINDOW_WIDTH + width)
+        direction = -direction;
+    }
+    draw();
+  }
+};
 void drawBridgeTowers() {
   glColor3ub(182, 60, 74);
   drawQuad(407.8, 168, 13.5, 76.4);
@@ -418,116 +452,7 @@ void drawBridge() {
   // RIGHT PILLER END
   // BRIDE END
 }
-void drawSunset() {
-  // SKY START
-  glBegin(GL_QUADS);
-  glColor3ub(220, 134, 48);
-  glVertex2f(0, 0);
-  glVertex2f(0, 1080);
-  glVertex2f(1920, 1080);
-  glVertex2f(1920, 0);
-  glEnd();
-  // SKY END
-
-  drawStars(WINDOW_WIDTH, 650);
-  drawSun();
-
-  // RIVER START
-  glBegin(GL_QUADS);
-  glColor3ub(200, 63, 46);
-  glVertex2f(0, 745);
-  glVertex2f(0, 1080);
-  glVertex2f(1920, 1080);
-  glVertex2f(1920, 745);
-  glEnd();
-  // RIVER END
-
-  // LEFT-BOTTOM HILL START
-  glBegin(GL_POLYGON);
-  glColor3ub(148, 36, 40);
-  glVertex2f(435, 1080);
-  glVertex2f(425, 1050);
-  glVertex2f(325, 1007);
-  glVertex2f(280, 943);
-  glVertex2f(160, 925);
-  glVertex2f(0, 860);
-  glVertex2f(0, 1080);
-  glEnd();
-
-  glBegin(GL_POLYGON); // SHADOW
-  glColor3ub(136, 30, 34);
-  glVertex2f(310, 1080);
-  glVertex2f(310, 1010);
-  glVertex2f(265, 975);
-  glVertex2f(180, 975);
-  glVertex2f(0, 860);
-  glVertex2f(0, 975);
-  glVertex2f(65, 1030);
-  glVertex2f(110, 1040);
-  glEnd();
-
-  // LEFT-BOTTOM HILL END
-
-  // RIGHT-BOTTOM HILL START
-
-  glBegin(GL_POLYGON);
-  glColor3ub(148, 36, 40);
-  glVertex2f(1920, 910);
-  glVertex2f(1740, 885);
-  glVertex2f(1560, 925);
-  glVertex2f(1320, 1020);
-  glVertex2f(1290, 1055);
-  glVertex2f(1190, 1055);
-  glVertex2f(1182, 1080);
-  glVertex2f(1920, 1080);
-  glEnd();
-
-  glBegin(GL_POLYGON); // SHADOW
-  glColor3ub(136, 30, 34);
-  glVertex2f(1460, 1080);
-  glVertex2f(1547, 1000);
-  glVertex2f(1615, 1010);
-  glVertex2f(1615, 960);
-  glVertex2f(1645, 960);
-  glVertex2f(1665, 907);
-  glVertex2f(1560, 925);
-  glVertex2f(1430, 985);
-  glVertex2f(1380, 1080);
-  glEnd();
-
-  glBegin(GL_POLYGON); // SHADOW
-  glColor3ub(136, 30, 34);
-  glVertex2f(1920, 910);
-  glVertex2f(1740, 885);
-  glVertex2f(1730, 911);
-  glVertex2f(1774, 956);
-  glVertex2f(1792, 1010);
-  glVertex2f(1744, 1080);
-  glVertex2f(1920, 1080);
-  glEnd();
-
-  // RIGHT-BOTTOM HILL END
-
-  glBegin(GL_POLYGON);
-  glColor3ub(148, 36, 40);
-  glVertex2f(503, 968);
-  glVertex2f(475, 944);
-  glVertex2f(463, 945);
-  glVertex2f(447, 935);
-  glVertex2f(423, 944);
-  glVertex2f(392, 968);
-  glEnd();
-
-  glBegin(GL_POLYGON); // SHADOW
-  glColor3ub(136, 30, 34);
-  glVertex2f(447, 935);
-  glVertex2f(443, 944);
-  glVertex2f(392, 968);
-  glVertex2f(428, 968);
-  glVertex2f(435, 957);
-  glVertex2f(443, 954);
-  glVertex2f(440, 946);
-  glEnd();
+void drawFarHill() {
   // LEFT HILL START
   glBegin(GL_POLYGON);
   glColor3ub(170, 43, 41);
@@ -602,6 +527,95 @@ void drawSunset() {
   glEnd();
   glPopMatrix();
   // RIGHT HILL END
+}
+void drawNearHill() {
+  // LEFT-BOTTOM HILL START
+  glBegin(GL_POLYGON);
+  glColor3ub(148, 36, 40);
+  glVertex2f(435, 1080);
+  glVertex2f(425, 1050);
+  glVertex2f(325, 1007);
+  glVertex2f(280, 943);
+  glVertex2f(160, 925);
+  glVertex2f(0, 860);
+  glVertex2f(0, 1080);
+  glEnd();
+
+  glBegin(GL_POLYGON); // SHADOW
+  glColor3ub(136, 30, 34);
+  glVertex2f(310, 1080);
+  glVertex2f(310, 1010);
+  glVertex2f(265, 975);
+  glVertex2f(180, 975);
+  glVertex2f(0, 860);
+  glVertex2f(0, 975);
+  glVertex2f(65, 1030);
+  glVertex2f(110, 1040);
+  glEnd();
+
+  // LEFT-BOTTOM HILL END
+
+  // RIGHT-BOTTOM HILL START
+
+  glBegin(GL_POLYGON);
+  glColor3ub(148, 36, 40);
+  glVertex2f(1920, 910);
+  glVertex2f(1740, 885);
+  glVertex2f(1560, 925);
+  glVertex2f(1320, 1020);
+  glVertex2f(1290, 1055);
+  glVertex2f(1190, 1055);
+  glVertex2f(1182, 1080);
+  glVertex2f(1920, 1080);
+  glEnd();
+
+  glBegin(GL_POLYGON); // SHADOW
+  glColor3ub(136, 30, 34);
+  glVertex2f(1460, 1080);
+  glVertex2f(1547, 1000);
+  glVertex2f(1615, 1010);
+  glVertex2f(1615, 960);
+  glVertex2f(1645, 960);
+  glVertex2f(1665, 907);
+  glVertex2f(1560, 925);
+  glVertex2f(1430, 985);
+  glVertex2f(1380, 1080);
+  glEnd();
+
+  glBegin(GL_POLYGON); // SHADOW
+  glColor3ub(136, 30, 34);
+  glVertex2f(1920, 910);
+  glVertex2f(1740, 885);
+  glVertex2f(1730, 911);
+  glVertex2f(1774, 956);
+  glVertex2f(1792, 1010);
+  glVertex2f(1744, 1080);
+  glVertex2f(1920, 1080);
+  glEnd();
+
+  // RIGHT-BOTTOM HILL END
+}
+void drawMidRiverHill() {
+  glBegin(GL_POLYGON);
+  glColor3ub(148, 36, 40);
+  glVertex2f(503, 968);
+  glVertex2f(475, 944);
+  glVertex2f(463, 945);
+  glVertex2f(447, 935);
+  glVertex2f(423, 944);
+  glVertex2f(392, 968);
+  glEnd();
+
+  glBegin(GL_POLYGON); // SHADOW
+  glColor3ub(136, 30, 34);
+  glVertex2f(447, 935);
+  glVertex2f(443, 944);
+  glVertex2f(392, 968);
+  glVertex2f(428, 968);
+  glVertex2f(435, 957);
+  glVertex2f(443, 954);
+  glVertex2f(440, 946);
+  glEnd();
   /////////////////////
   glPushMatrix();
   glTranslatef(-106, -67, 0);
@@ -702,9 +716,45 @@ void drawSunset() {
   glVertex2f(440, 946);
   glEnd();
   glPopMatrix();
-
+}
+void drawSky() {
+  // SKY START
+  glBegin(GL_QUADS);
+  glColor3ub(220, 134, 48);
+  glVertex2f(0, 0);
+  glVertex2f(0, 1080);
+  glVertex2f(1920, 1080);
+  glVertex2f(1920, 0);
+  glEnd();
+  // SKY END
+}
+void drawRiver() {
+  // RIVER START
+  glBegin(GL_QUADS);
+  glColor3ub(200, 63, 46);
+  glVertex2f(0, 745);
+  glVertex2f(0, 1080);
+  glVertex2f(1920, 1080);
+  glVertex2f(1920, 745);
+  glEnd();
+  // RIVER END
+}
+void drawShips() {
+  static Ship ship1 = Ship(60, 50, 800, -2, 0x75181D);
+  ship1.update();
+  static Ship ship2 = Ship(30, 25, 730, -1, 0x75181D);
+  ship2.update();
+}
+void drawSunset() {
+  drawSky();
+  drawStars(WINDOW_WIDTH, 650);
+  drawSun();
+  drawRiver();
+  drawFarHill();
   drawBridge();
-  drawShip();
+  drawShips();
+  drawMidRiverHill();
+  drawNearHill();
 }
 
 void draw() { drawSunset(); }
@@ -726,8 +776,6 @@ void resize(int width, int height) {
 }
 
 void render(void) {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   glClearColor(0, 0, 0, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -737,12 +785,14 @@ void render(void) {
   draw();
 
   glutSwapBuffers();
+
+  glutPostRedisplay();
 }
 
 int main(int argc, char *argv[]) {
   glutInit(&argc, argv);
 
-  // glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+  glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 
   glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -750,7 +800,6 @@ int main(int argc, char *argv[]) {
 
   glutDisplayFunc(render);
   glutReshapeFunc(resize);
-  glutIdleFunc(render);
 
   glutMainLoop();
 
