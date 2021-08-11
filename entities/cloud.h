@@ -57,10 +57,9 @@ public:
     glPopMatrix();
   }
 
-  Cloud(int x, int y, int width, int height, unsigned int color,
-        HDirection facing_to)
+  Cloud(int x, int y, int width, int height, HDirection facing_to)
       : x(x), y(y), width(width), height(height), facing_to(facing_to),
-        color(color), cloud_chunks(genCloudChunks()) {}
+        cloud_chunks(genCloudChunks()) {}
   AnimatedCloud animate(int min_x, int max_x, int speed);
 };
 

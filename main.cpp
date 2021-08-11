@@ -587,21 +587,16 @@ void drawShips() {
   ship2.draw();
 }
 void drawCloud(Scene scene) {
-  static auto cloud1 =
-      Cloud(WINDOW_WIDTH, 50, 80, 30, 0xFEF3C7, HDirection::left)
-          .animate(0, WINDOW_WIDTH, 30);
-  static auto cloud2 =
-      Cloud(WINDOW_WIDTH / 3, 80, 50, 20, 0xFEF3C7, HDirection::left)
-          .animate(0, WINDOW_WIDTH, 40);
-  static auto cloud3 =
-      Cloud(WINDOW_WIDTH / 5, 150, 60, 10, 0xFEF3C7, HDirection::left)
-          .animate(0, WINDOW_WIDTH, 50);
-  static auto cloud4 =
-      Cloud(WINDOW_WIDTH / 5, 200, 80, 20, 0xFEF3C7, HDirection::left)
-          .animate(0, WINDOW_WIDTH, 60);
-  static auto cloud5 =
-      Cloud(WINDOW_WIDTH / 5, 250, 20, 10, 0xFEF3C7, HDirection::left)
-          .animate(0, WINDOW_WIDTH, 20);
+  static auto cloud1 = Cloud(WINDOW_WIDTH, 50, 80, 30, HDirection::left)
+                           .animate(0, WINDOW_WIDTH, 30);
+  static auto cloud2 = Cloud(WINDOW_WIDTH / 3, 80, 50, 20, HDirection::left)
+                           .animate(0, WINDOW_WIDTH, 40);
+  static auto cloud3 = Cloud(WINDOW_WIDTH / 5, 150, 60, 10, HDirection::left)
+                           .animate(0, WINDOW_WIDTH, 50);
+  static auto cloud4 = Cloud(WINDOW_WIDTH / 5, 200, 80, 20, HDirection::left)
+                           .animate(0, WINDOW_WIDTH, 60);
+  static auto cloud5 = Cloud(WINDOW_WIDTH / 5, 250, 20, 10, HDirection::left)
+                           .animate(0, WINDOW_WIDTH, 20);
   cloud1.draw(scene);
   cloud2.draw(scene);
   cloud3.draw(scene);
