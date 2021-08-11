@@ -1,4 +1,3 @@
-
 #include "../lib.h"
 #include "array"
 #include "random"
@@ -23,10 +22,8 @@ protected:
     vector<array<double, 3>> chunks;
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<> u_rand_x(0, 10);
-    uniform_int_distribution<> u_rand_y(0, 10);
-    uniform_int_distribution<> u_rand_r(7, 10);
-    uniform_int_distribution<> u_rand_chunk(4, 8);
+    uniform_int_distribution<> u_rand_x(0, 10), u_rand_y(0, 10),
+        u_rand_r(5, 10), u_rand_chunk(4, 8);
 
     for (int n = 0; n < u_rand_chunk(gen); ++n) {
       double x = u_rand_x(gen) / 10.f, y = u_rand_y(gen) / 10.f,
@@ -62,7 +59,7 @@ public:
 class AnimatedCloud : Cloud {
 public:
   AnimatedCloud(Cloud ship, int min_x, int max_x, int speed)
-      : Cloud(ship), min_x(min_x), max_x(max_x), speed(speed), start_x(x),
+      : Cloud(ship), min_x(min_x), max_x(max_x), speed(speed),
         last_render(GetCurrentTime()) {}
   void draw() {
     double current_time = GetCurrentTime();
@@ -92,7 +89,7 @@ public:
   }
 
 private:
-  double start_x, min_x, max_x;
+  double min_x, max_x;
   int speed; // pixel per second;
   double last_render;
 };

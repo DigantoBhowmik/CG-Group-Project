@@ -19,7 +19,7 @@ using namespace std;
 
 #define STAR_COUNT 300
 
-#define LIMIT_FPS false
+#define LIMIT_FPS true
 int FPS = 30;
 
 enum Scene { sunset, night };
@@ -46,30 +46,38 @@ struct STAR_META {
   int r;
 };
 void drawStars(GLfloat width, GLfloat height, int amount) {
-  static bool ran_once = false;
   static vector<STAR_META> stars_meta;
 
-  if (!ran_once) {
+  if (stars_meta.size() < amount) {
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<> u_rand_x(0, width);
-    uniform_int_distribution<> u_rand_y(0, height);
-    uniform_int_distribution<> u_rand_r(15, 30);
+    uniform_int_distribution<> u_rand_x(0, width), u_rand_y(0, height),
+        u_rand_r(15, 30);
 
-    for (int n = 0; n < amount; ++n) {
+    for (int n = 0; n < amount - stars_meta.size(); ++n) {
       int x = u_rand_x(gen), y = u_rand_y(gen), r = u_rand_r(gen);
       STAR_META star = {x, y, r};
       stars_meta.push_back(star);
     }
-    ran_once = true;
   }
-
-  for (auto star : stars_meta) {
+  for (auto star_it = stars_meta.begin();
+       star_it != stars_meta.begin() + amount; star_it++) {
+    auto [x, y, r] = *star_it;
     glPushMatrix();
-    glTranslatef(star.x, star.y, 0.f);
-    glScalef(star.r, star.r, 1.0f);
+    glTranslatef(x, y, 0.f);
+    glScalef(r, r, 1.0f);
     drawStar();
     glPopMatrix();
+  }
+}
+void drawStars(Scene scene) {
+  switch (scene) {
+  case Scene::sunset:
+    drawStars(WINDOW_WIDTH, 400, 20);
+    break;
+  case Scene::night:
+    drawStars(WINDOW_WIDTH, 700, 200);
+    break;
   }
 }
 void drawBridgeCables() {
@@ -539,16 +547,20 @@ void drawMidRiverHill() {
   glEnd();
   glPopMatrix();
 }
-void drawSky() {
-  // SKY START
-  glBegin(GL_QUADS);
-  glColor3ub(220, 134, 48);
-  glVertex2f(0, 0);
-  glVertex2f(0, 1080);
-  glVertex2f(1920, 1080);
-  glVertex2f(1920, 0);
-  glEnd();
-  // SKY END
+void drawSky(unsigned int color) {
+  auto _color = Hex2glRGB(color);
+  glColor3fv((GLfloat *)&_color);
+  drawQuad(0, 0, 1920, 1080);
+}
+void drawSky(Scene scene) {
+  switch (scene) {
+  case Scene::sunset:
+    drawSky(0xD98539);
+    break;
+  case Scene::night:
+    drawSky(0x403CD6);
+    break;
+  }
 }
 void drawRiver() {
   glBegin(GL_QUADS);
@@ -576,7 +588,8 @@ void drawShips() {
   ship1.draw();
   ship2.draw();
 }
-void drawCloud() {
+void drawCloud(unsigned int color) {
+  static auto _last_attrib = color;
   static auto cloud1 =
       Cloud(WINDOW_WIDTH, 50, 80, 30, 0xFEF3C7, HDirection::left)
           .animate(0, WINDOW_WIDTH, 30);
@@ -598,41 +611,27 @@ void drawCloud() {
   cloud4.draw();
   cloud5.draw();
 }
-
-void drawSunset() {
-  drawSky();
-  drawStars(WINDOW_WIDTH, 400, 20);
-  drawSun();
-  drawCloud();
-  drawRiver();
-  drawFarHill();
-  drawBridge();
-  drawShips();
-  drawMidRiverHill();
-  drawNearHill();
-}
-
-void drawNight() {
-  drawSky();
-  drawStars(WINDOW_WIDTH, 700, 200);
-  drawSun();
-  drawRiver();
-  drawFarHill();
-  drawBridge();
-  drawShips();
-  drawMidRiverHill();
-  drawNearHill();
-}
-
-void draw() {
+void drawCloud(Scene scene) {
   switch (scene) {
   case Scene::sunset:
-    drawSunset();
+    drawCloud(0xFEF3C7);
     break;
   case Scene::night:
-    drawNight();
+    drawCloud(0xD98539);
     break;
   }
+}
+void draw() {
+  drawSky(scene);
+  drawStars(scene);
+  drawSun();
+  drawCloud(scene);
+  drawRiver();
+  drawFarHill();
+  drawBridge();
+  drawShips();
+  drawMidRiverHill();
+  drawNearHill();
 }
 
 void resize(int width, int height) {
