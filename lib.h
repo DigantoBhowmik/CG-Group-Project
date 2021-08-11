@@ -11,6 +11,8 @@ using namespace std;
 #define PI 3.14159265358
 #define PI2 6.28318530718
 
+enum Scene { sunset, night };
+
 enum HDirection { left, right };
 
 union Color {

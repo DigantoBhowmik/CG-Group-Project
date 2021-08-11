@@ -22,8 +22,6 @@ using namespace std;
 #define LIMIT_FPS true
 int FPS = 30;
 
-enum Scene { sunset, night };
-
 Scene scene = Scene::sunset;
 
 void drawSun() {
@@ -588,8 +586,7 @@ void drawShips() {
   ship1.draw();
   ship2.draw();
 }
-void drawCloud(unsigned int color) {
-  static auto _last_attrib = color;
+void drawCloud(Scene scene) {
   static auto cloud1 =
       Cloud(WINDOW_WIDTH, 50, 80, 30, 0xFEF3C7, HDirection::left)
           .animate(0, WINDOW_WIDTH, 30);
@@ -605,22 +602,13 @@ void drawCloud(unsigned int color) {
   static auto cloud5 =
       Cloud(WINDOW_WIDTH / 5, 250, 20, 10, 0xFEF3C7, HDirection::left)
           .animate(0, WINDOW_WIDTH, 20);
-  cloud1.draw();
-  cloud2.draw();
-  cloud3.draw();
-  cloud4.draw();
-  cloud5.draw();
+  cloud1.draw(scene);
+  cloud2.draw(scene);
+  cloud3.draw(scene);
+  cloud4.draw(scene);
+  cloud5.draw(scene);
 }
-void drawCloud(Scene scene) {
-  switch (scene) {
-  case Scene::sunset:
-    drawCloud(0xFEF3C7);
-    break;
-  case Scene::night:
-    drawCloud(0xD98539);
-    break;
-  }
-}
+
 void draw() {
   drawSky(scene);
   drawStars(scene);

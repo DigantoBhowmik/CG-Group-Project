@@ -35,7 +35,15 @@ protected:
   }
 
 public:
-  void draw() {
+  void draw(Scene scene) {
+    switch (scene) {
+    case Scene::sunset:
+      color = 0xFEF3C7;
+      break;
+    case Scene::night:
+      color = 0x5156D7;
+      break;
+    }
     auto cloud_color = Hex2glRGB(color);
 
     glPushMatrix();
@@ -61,7 +69,7 @@ public:
   AnimatedCloud(Cloud ship, int min_x, int max_x, int speed)
       : Cloud(ship), min_x(min_x), max_x(max_x), speed(speed),
         last_render(GetCurrentTime()) {}
-  void draw() {
+  void draw(Scene scene) {
     double current_time = GetCurrentTime();
     double epoch = current_time - last_render;
     double x_delta = epoch * speed;
@@ -83,7 +91,7 @@ public:
         cloud_chunks = genCloudChunks();
       }
     }
-    Cloud::draw();
+    Cloud::draw(scene);
 
     last_render = current_time;
   }
