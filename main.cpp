@@ -1,8 +1,14 @@
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#include <GLUT/glut.h>
+#include <stdlib.h>
+#else
+#include <GL/glut.h>
+#endif
+
 #include "./entities/cloud.h"
 #include "./entities/ship.h"
 #include "./lib.h"
-#include <GL/gl.h>
-#include <GL/glut.h>
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -19,7 +25,7 @@ using namespace std;
 
 #define STAR_COUNT 300
 
-#define LIMIT_FPS true
+#define LIMIT_FPS false
 int FPS = 30;
 
 Scene scene = Scene::sunset;

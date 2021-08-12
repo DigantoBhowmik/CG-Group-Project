@@ -1,7 +1,14 @@
 #ifndef LIB_H
 #define LIB_H
 
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#include <GLUT/glut.h>
+#include <stdlib.h>
+#else
 #include <GL/glut.h>
+#endif
+
 #include <chrono>
 #include <math.h>
 #include <vector>
