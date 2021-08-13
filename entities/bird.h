@@ -99,7 +99,8 @@ public:
         x = min_x - cloud_size;
       }
     }
-    double flap_delta = epoch * 2;
+
+    double flap_delta = fmod(epoch * 2, 2);
     if (flap_direction == VDirection::bottom) {
       wing_state -= flap_delta;
       if (wing_state < -1.2)
