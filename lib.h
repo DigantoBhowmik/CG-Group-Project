@@ -9,8 +9,9 @@
 #include <GL/glut.h>
 #endif
 
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
 #include <chrono>
-#include <iostream>
 #include <math.h>
 #include <string>
 #include <vector>
@@ -157,6 +158,60 @@ inline double GetCurrentTime() {
   return chrono::duration_cast<Duration>(
              chrono::high_resolution_clock::now().time_since_epoch())
       .count();
+}
+
+inline void data_callback(ma_device *pDevice, void *pOutput, const void *pInput,
+                          ma_uint32 frameCount) {
+  ma_bool32 isLooping = MA_TRUE;
+
+  ma_decoder *pDecoder = (ma_decoder *)pDevice->pUserData;
+  if (pDecoder == NULL) {
+    return;
+  }
+
+  ma_data_source_read_pcm_frames(pDecoder, pOutput, frameCount, NULL,
+                                 isLooping);
+
+  (void)pInput;
+}
+
+inline int playAudio(const char *audioName) {
+  ma_result result;
+  ma_decoder decoder;
+  ma_device_config deviceConfig;
+  ma_device device;
+
+  result = ma_decoder_init_file(audioName, NULL, &decoder);
+  if (result != MA_SUCCESS) {
+    return -2;
+  }
+
+  deviceConfig = ma_device_config_init(ma_device_type_playback);
+  deviceConfig.playback.format = decoder.outputFormat;
+  deviceConfig.playback.channels = decoder.outputChannels;
+  deviceConfig.sampleRate = decoder.outputSampleRate;
+  deviceConfig.dataCallback = data_callback;
+  deviceConfig.pUserData = &decoder;
+
+  if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS) {
+    printf("Failed to open playback device.\n");
+    ma_decoder_uninit(&decoder);
+    return -3;
+  }
+
+  if (ma_device_start(&device) != MA_SUCCESS) {
+    printf("Failed to start playback device.\n");
+    ma_device_uninit(&device);
+    ma_decoder_uninit(&decoder);
+    return -4;
+  }
+
+  getchar();
+
+  ma_device_uninit(&device);
+  ma_decoder_uninit(&decoder);
+
+  return 0;
 }
 
 #endif

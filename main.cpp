@@ -778,7 +778,8 @@ void draw(Scene scene) {
     drawMoon();
   drawCloud(scene);
   drawPlane(scene);
-  drawBirds(scene);
+  if (scene == Scene::sunset || scene == Scene::day)
+    drawBirds(scene);
   drawRiver(scene);
   drawLightReflection(scene);
   drawFarHill(scene);
@@ -821,7 +822,7 @@ void displayFunc() {
 
 void playAudioFunc(Scene scene) {
   const char *day = "Sunny Day-SoundBible.com-2064222612(1).mp3";
-  const char *sunset = "Light Rain And Crickets-SoundBible.com-1664737469.mp3";
+  const char *sunset = "Light Rain And Crickets-SoundBible.com-1664737469.wav";
   const char *night = "Nightime-SoundBible.com-952309297.mp3";
 
   static thread audio_thread(playAudio, sunset);
@@ -847,7 +848,7 @@ void keyExecute() {
   static double last_triggered = GetCurrentTime();
   double now = GetCurrentTime();
 
-  if (now - last_triggered < .3)
+  if (now - last_triggered < .1)
     return;
 
   if (keyStates['s'])
