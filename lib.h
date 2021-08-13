@@ -10,7 +10,9 @@
 #endif
 
 #include <chrono>
+#include <iostream>
 #include <math.h>
+#include <string>
 #include <vector>
 
 using namespace std;
@@ -18,9 +20,10 @@ using namespace std;
 #define PI 3.14159265358
 #define PI2 6.28318530718
 
-enum Scene { sunset, night };
+enum Scene { sunset, night, day };
 
 enum HDirection { left, right };
+enum VDirection { top, bottom };
 
 union Color {
   unsigned int hex;
@@ -38,11 +41,14 @@ struct GLColorRGB {
   GLfloat r, g, b;
 };
 
-inline GLColorRGB Hex2glRGB(unsigned int hex) {
+inline GLColorRGB toGLColorRGB(GLubyte r, GLubyte g, GLubyte b) {
+  return {r / 255.f, g / 255.f, b / 255.f};
+}
+inline GLColorRGB toGLColorRGB(unsigned int hex) {
   union Color _hex;
   _hex.hex = hex;
   GLColorRGB rgb;
-  return {_hex.r / 255.f, _hex.g / 255.f, _hex.b / 255.f};
+  return toGLColorRGB(_hex.r, _hex.g, _hex.b);
 }
 
 inline void drawFilledElipsis(GLfloat x, GLfloat y, GLfloat width,

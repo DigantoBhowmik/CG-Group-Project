@@ -8,8 +8,19 @@ protected:
   HDirection facing_to = HDirection::left;
 
 public:
-  void draw() {
-    auto ship_color = Hex2glRGB(color);
+  void draw(Scene scene) {
+    switch (scene) {
+    case Scene::sunset:
+      color = 0x75181D;
+      break;
+    case Scene::night:
+      color = 0x5156D7;
+      break;
+    case Scene::day:
+      color = 0xFCF3D5;
+      break;
+    }
+    auto ship_color = toGLColorRGB(color);
 
     glPushMatrix();
     glTranslatef(x, y, 0);
@@ -18,7 +29,7 @@ public:
     } else {
       glScalef(-width, height, 0);
     }
-    glColor3ub(217, 132, 126);
+    glColor4f(1, 1, 1, .1);
     drawFilledElipsis(.8, 1.35, .8, .1);
 
     glColor3fv((GLfloat *)&ship_color);
@@ -50,10 +61,8 @@ public:
     glPopMatrix();
   }
 
-  Ship(int x, int y, int width, int height, unsigned int color,
-       HDirection facing_to)
-      : x(x), y(y), width(width), height(height), facing_to(facing_to),
-        color(color) {}
+  Ship(int x, int y, int width, int height, HDirection facing_to)
+      : x(x), y(y), width(width), height(height), facing_to(facing_to) {}
   AnimatedShip animate(int min_x, int max_x, int speed);
 };
 
@@ -62,23 +71,26 @@ public:
   AnimatedShip(Ship ship, int min_x, int max_x, int speed)
       : Ship(ship), min_x(min_x), max_x(max_x), speed(speed), start_x(x),
         last_render(GetCurrentTime()) {}
-  void draw() {
+  void draw(Scene scene) {
     double current_time = GetCurrentTime();
     double epoch = current_time - last_render;
     double x_delta = epoch * speed;
 
+    // Note: size should be pre-calculated... this is an approximination
+    double ship_size = width * 2;
+
     if (facing_to == HDirection::left) {
       x -= x_delta;
 
-      if (x < min_x)
+      if (x < min_x - ship_size)
         facing_to = HDirection::right;
     } else {
       x += x_delta;
 
-      if (x > max_x)
+      if (x > max_x + ship_size)
         facing_to = HDirection::left;
     }
-    Ship::draw();
+    Ship::draw(scene);
 
     last_render = current_time;
   }

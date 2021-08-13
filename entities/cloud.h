@@ -43,8 +43,11 @@ public:
     case Scene::night:
       color = 0x5156D7;
       break;
+    case Scene::day:
+      color = 0xFCF3D5;
+      break;
     }
-    auto cloud_color = Hex2glRGB(color);
+    auto cloud_color = toGLColorRGB(color);
 
     glPushMatrix();
     glTranslatef(x, y, 0);
@@ -73,6 +76,7 @@ public:
     double epoch = current_time - last_render;
     double x_delta = epoch * speed;
 
+    // Note: size should be pre-calculated... this is an approximination
     double cloud_size = width * 1.5;
 
     if (facing_to == HDirection::left) {
